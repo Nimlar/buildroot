@@ -147,6 +147,25 @@ config BR2_TARGET_ARM_TRUSTED_FIRMWARE_UBOOT_BL33_IMAGE
 	  Name of the U-Boot BL33 image to include in ATF, it must
 	  have been installed to BINARIES_DIR by the U-Boot package.
 
+config BR2_TARGET_ARM_TRUSTED_FIRMWARE_UBOOT_DTB_AS_BL33_CFG
+	bool "Use U-Boot device tree as BL33 hardware description"
+	depends on BR2_TARGET_ARM_TRUSTED_FIRMWARE_UBOOT_AS_BL33
+	help
+	  This option allows to embed u-boot.dtb as the BL33 configuration
+	  part of the ARM Trusted Firmware. It ensures that the u-boot package
+	  gets built before ATF, and that the appropriate BL33_CFG
+	  variable pointing to u-boot.dtb is passed when building ATF.
+
+if BR2_TARGET_ARM_TRUSTED_FIRMWARE_UBOOT_DTB_AS_BL33_CFG
+
+config BR2_TARGET_ARM_TRUSTED_FIRMWARE_UBOOT_BL33_DTB
+	string "U-Boot BL33 device tree name"
+	default "u-boot.dtb"
+	help
+	  Name of the U-Boot BL33 device tree to include in ATF, it must
+	  have been installed to BINARIES_DIR by the U-Boot package.
+
+endif
 endif
 
 config BR2_TARGET_ARM_TRUSTED_FIRMWARE_EDK2_AS_BL33
@@ -182,6 +201,28 @@ config BR2_TARGET_ARM_TRUSTED_FIRMWARE_ADDITIONAL_VARIABLES
 	help
 	  Additional parameters for the ATF build
 	  E.G. 'DEBUG=1 LOG_LEVEL=20'
+
+config BR2_TARGET_ARM_TRUSTED_FIRMWARE_TRUSTED_BOOT
+	bool "Build a trusted boot"
+	help
+	  Enable this option to build ATF with TRUSTED_BOARD_BOOT=1.
+
+if BR2_TARGET_ARM_TRUSTED_FIRMWARE_TRUSTED_BOOT
+config BR2_TARGET_ARM_TRUSTED_FIRMWARE_ENCRYPT_BL32
+	bool "Build bl2 to decrypt BL32 and encrypt bl32 in fip"
+	help
+	  Enable this option to build ATF BL2 to decrypt BL32 with aes-gcm.
+
+if BR2_TARGET_ARM_TRUSTED_FIRMWARE_ENCRYPT_BL32
+config BR2_TARGET_ARM_TRUSTED_FIRMWARE_ENCRYPT_BL32_KEY
+	string "Key to encrypt BL32"
+	default "1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef"
+
+config BR2_TARGET_ARM_TRUSTED_FIRMWARE_ENCRYPT_BL32_NONCE
+	string "Key to encrypt BL32"
+	default "1234567890abcdef12345678"
+endif
+endif
 
 config BR2_TARGET_ARM_TRUSTED_FIRMWARE_DEBUG
 	bool "Build in debug mode"
