@@ -60,6 +60,11 @@ FFMPEG_CONF_OPTS = \
 
 FFMPEG_DEPENDENCIES += host-pkgconf
 
+ifeq ($(BR2_PACKAGE_ROCKCHIP_MPP),y)
+FFMPEG_CONF_OPTS += --enable-rkmpp --enable-libdrm --enable-version3
+FFMPEG_DEPENDENCIES += rockchip-mpp
+endif
+
 ifeq ($(BR2_PACKAGE_FFMPEG_GPL),y)
 FFMPEG_CONF_OPTS += --enable-gpl
 else
