@@ -156,6 +156,18 @@ ARM_TRUSTED_FIRMWARE_MAKE_TARGETS = all
 ifeq ($(BR2_TARGET_ARM_TRUSTED_FIRMWARE_FIP),y)
 ARM_TRUSTED_FIRMWARE_MAKE_TARGETS += fip
 ARM_TRUSTED_FIRMWARE_DEPENDENCIES += host-openssl
+# fiptool only exists in newer (>= 1.3) versions of ATF, so we build
+# it conditionally. We need to explicitly build it as it requires
+# OpenSSL, and therefore needs to be passed proper variables to find
+# the host OpenSSL.
+define ARM_TRUSTED_FIRMWARE_BUILD_FIPTOOL
+	if test -d $(@D)/tools/fiptool; then \
+		$(TARGET_CONFIGURE_OPTS) $(MAKE) -C $(@D) \
+			$(ARM_TRUSTED_FIRMWARE_MAKE_OPTS) \
+			CPPFLAGS="$(HOST_CPPFLAGS)" \
+			LDLIBS="$(HOST_LDFLAGS) -lcrypto" fiptool ; \
+	fi
+endef
 endif
 
 ifeq ($(BR2_TARGET_ARM_TRUSTED_FIRMWARE_RCW),y)
@@ -203,6 +215,7 @@ define ARM_TRUSTED_FIRMWARE_BUILD_CMDS
 	$(if $(ARM_TRUSTED_FIRMWARE_CUSTOM_DTS_PATH),
 		cp -f $(ARM_TRUSTED_FIRMWARE_CUSTOM_DTS_PATH) $(@D)/fdts/
 	)
+	$(ARM_TRUSTED_FIRMWARE_BUILD_FIPTOOL)
 	$(ARM_TRUSTED_FIRMWARE_MAKE_ENV) $(MAKE) -C $(@D) \
 		$(ARM_TRUSTED_FIRMWARE_MAKE_OPTS) \
 		$(ARM_TRUSTED_FIRMWARE_MAKE_TARGETS)
