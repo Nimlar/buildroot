@@ -3,17 +3,22 @@
 # gcnano-binaries
 #
 ################################################################################
+GCNANO_BINARIES_LIB_VERSION = 6.4.15
+GCNANO_BINARIES_DRIVER_VERSION = $(GCNANO_BINARIES_LIB_VERSION)
+GCNANO_BINARIES_MODULE_SUBDIRS = gcnano-driver-stm32mp
+GCNANO_BINARIES_VERSION = bbaae49a0e4859ed53f898a250269c8a237261bc
+
 ifeq ($(BR2_aarch64),y)
-GCNANO_BINARIES_LIB_VERSION = 6.4.13
-GCNANO_BINARIES_DRIVER_VERSION = $(GCNANO_BINARIES_LIB_VERSION)
-GCNANO_BINARIES_USERLAND_VERSION = stm32mp2-$(GCNANO_BINARIES_LIB_VERSION)-20230210
-GCNANO_BINARIES_VERSION = 0ac1a89d7a59d040a69745a85f0da7e98644cc4b
+GCNANO_BINARIES_VERSION_DATE = 20240517
+GCNANO_BINARIES_USERLAND_VERSION = stm32mp2-$(GCNANO_BINARIES_LIB_VERSION)-$(GCNANO_BINARIES_VERSION_DATE)
+GCNANO_BINARIES_SOC_PLAT = st-mp2
 else
-GCNANO_BINARIES_LIB_VERSION = 6.4.9
-GCNANO_BINARIES_DRIVER_VERSION = $(GCNANO_BINARIES_LIB_VERSION)
-GCNANO_BINARIES_USERLAND_VERSION = stm32mp1-$(GCNANO_BINARIES_LIB_VERSION)-20221206
-GCNANO_BINARIES_VERSION = 0ac1a89d7a59d040a69745a85f0da7e98644cc4b
+GCNANO_BINARIES_VERSION_DATE = 20240206
+GCNANO_BINARIES_USERLAND_VERSION = stm32mp1-$(GCNANO_BINARIES_LIB_VERSION)-$(GCNANO_BINARIES_VERSION_DATE)
+GCNANO_BINARIES_SOC_PLAT = st-mp1
 endif
+GCNANO_BINARIES_LINUX_DRV_EXTRACT=tar --strip-componentsum
+
 GCNANO_BINARIES_SITE = $(call github,STMicroelectronics,gcnano-binaries,$(GCNANO_BINARIES_VERSION))
 
 GCNANO_BINARIES_LICENSE = MIT, Vivante End User Software License Terms
@@ -26,20 +31,12 @@ GCNANO_BINARIES_INSTALL_STAGING = YES
 
 GCNANO_BINARIES_PROVIDES = libegl libgles libgbm
 
-GCNANO_BINARIES_MODULE_SUBDIRS = gcnano-driver-stm32mp
-
-ifeq ($(BR2_aarch64),y)
-GCNANO_BINARIES_SOC_PLAT = st-mp2
-else
-GCNANO_BINARIES_SOC_PLAT = st-mp1
-endif
-
 # The Github repository doesn't contain the source code as-is: it
 # contains a tarball with the kernel driver source code, and a
 # self-extractible binary for the user-space parts. So we extract both
 # below, and also extract the EULA text from the self-extractible binary
 define GCNANO_BINARIES_EXTRACT_HELPER
-	tar --strip-components=1 -xJf $(@D)/gcnano-driver-$(GCNANO_BINARIES_DRIVER_VERSION).tar.xz -C $(@D)
+	#t ls $(GCNANO_BINARIES_LINUX_DRV_EXTRACT)
 	awk 'BEGIN      { start = 0; } \
 		/^EOEULA/  { start = 0; } \
 			{ if (start) print; } \
@@ -52,11 +49,19 @@ GCNANO_BINARIES_POST_EXTRACT_HOOKS += GCNANO_BINARIES_EXTRACT_HELPER
 
 GCNANO_BINARIES_MODULE_MAKE_OPTS = \
 	KERNEL_DIR=$(LINUX_DIR) \
-	SOC_PLATFORM=st-mp1 \
+	SOC_PLATFORM=$(GCNANO_BINARIES_SOC_PLAT)\
 	AQROOT=$(@D)/$(GCNANO_BINARIES_MODULE_SUBDIRS) \
 	DEBUG=0
 
 GCNANO_BINARIES_USERLAND_SUBDIR = gcnano-userland-multi-$(GCNANO_BINARIES_USERLAND_VERSION)
+
+define GCNANO_BINARIES_INSTALL_PATCH
+	for file in $(1)/usr/lib/pkgconfig/*.pc ; do \
+		sed -i -e "s|#PREFIX#|/usr|" $$file ; \
+		sed -i -e "s|#VERSION#|22.0.3|" $$file ; \
+	done
+	sed -i -e "s|^Libs:\(.*\)$$|Libs:\1 -lgbm|" $(1)/usr/lib/pkgconfig/egl.pc
+endef
 
 define GCNANO_BINARIES_INSTALL
 	cd $(@D)/$(GCNANO_BINARIES_USERLAND_SUBDIR)/release/drivers/ ; \
@@ -71,6 +76,7 @@ define GCNANO_BINARIES_INSTALL
 	cp -a $(@D)/$(GCNANO_BINARIES_USERLAND_SUBDIR)/release/include/* $(1)/usr/include/
 	mkdir -p $(1)/usr/lib/pkgconfig/
 	cp -a $(@D)/$(GCNANO_BINARIES_USERLAND_SUBDIR)/pkgconfig/*  $(1)/usr/lib/pkgconfig/
+	$(GCNANO_BINARIES_INSTALL_PATCH)
 endef
 
 define GCNANO_BINARIES_INSTALL_TARGET_CMDS
