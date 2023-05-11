@@ -104,7 +104,21 @@ package/madplay/0001-switch-to-new-alsa-api.patch Sob
 package/mariadb/S97mysqld Indent Shellcheck Variables
 package/matchbox-keyboard/mb-applet-kbd-wrapper.sh Shellcheck TrailingSpace
 package/mender-connect/S43mender-connect Shellcheck
-package/mii-diag/0001-strchr.patch Sob
+package/menu-cache/0001-Support-gcc10-compilation.patch Upstream
+package/mesa3d-demos/0001-demos-makes-opengl-an-optional-component.patch Upstream
+package/mesa3d/0001-meson-Set-proper-value-for-LIBCLC_INCLUDEDIR.patch Upstream
+package/meson-tools/0001-amlbootenc-gxl-remove-non-std-C-convention-in-for.patch Upstream
+package/meson/0001-Prefer-ext-static-libs-when-default-library-static.patch Upstream
+package/meson/0002-mesonbuild-dependencies-base.py-add-pkg_config_stati.patch Upstream
+package/metacity/0001-add-libm-reference.patch Upstream
+package/metacity/0002-gconf.patch Upstream
+package/metacity/0003-mag-add-libm-reference.patch Upstream
+package/mfgtools/0001-lnx_def.h-fix-conflicting-declaration-of-__time64_t.patch Upstream
+package/midori/0001-disable-vala-fatal-warnings.patch Upstream
+package/midori/0002-add-option-to-specify-path-to-g-ir-compiler.patch Upstream
+package/mii-diag/0001-strchr.patch Sob Upstream
+package/mimic/0001-Fix-linking-on-gcc-10.2.0-or-newer.patch Upstream
+package/mini-snmpd/0001-linux.c-fix-musl-build.patch Upstream
 package/minidlna/S60minidlnad Indent Shellcheck Variables
 package/minissdpd/S50minissdpd Indent Shellcheck Variables
 package/modem-manager/S44modem-manager Shellcheck Variables
