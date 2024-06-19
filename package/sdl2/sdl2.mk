@@ -15,18 +15,17 @@ SDL2_INSTALL_STAGING = YES
 SDL2_CONFIG_SCRIPTS = sdl2-config
 
 SDL2_CONF_OPTS += \
+	--disable-hidapi \
 	--disable-rpath \
 	--disable-arts \
 	--disable-esd \
 	--disable-dbus \
-	--disable-pulseaudio \
 	--disable-video-vivante \
 	--disable-video-cocoa \
 	--disable-video-metal \
 	--disable-video-wayland \
 	--disable-video-dummy \
 	--disable-video-offscreen \
-	--disable-video-vulkan \
 	--disable-ime \
 	--disable-ibus \
 	--disable-fcitx \
@@ -50,6 +49,10 @@ define SDL2_FIX_SDL2_CONFIG_CMAKE
 		$(STAGING_DIR)/usr/lib/cmake/SDL2/sdl2-config.cmake
 endef
 SDL2_POST_INSTALL_STAGING_HOOKS += SDL2_FIX_SDL2_CONFIG_CMAKE
+define SDL2_RUN_AUTOGEN
+	$(@D)/autogen.sh
+endef
+SDL2_PRE_CONFIGURE_HOOKS += SDL2_RUN_AUTOGEN
 
 # We must enable static build to get compilation successful.
 SDL2_CONF_OPTS += --enable-static
@@ -164,11 +167,40 @@ else
 SDL2_CONF_OPTS += --disable-alsa
 endif
 
+ifeq ($(BR2_PACKAGE_PULSEAUDIO),y)
+SDL2_DEPENDENCIES += pulseaudio
+SDL2_CONF_OPTS += --enable-pulseaudio
+else
+SDL2_CONF_OPTS += --disable-pulseaudio
+endif
+
+ifeq ($(BR2_PACKAGE_RECALBOX_HAS_VULKAN),y)
+SDL2_DEPENDENCIES += vulkan-headers
+SDL2_CONF_OPTS += --enable-video-vulkan
+else
+SDL2_CONF_OPTS += --disable-video-vulkan
+endif
+
 ifeq ($(BR2_PACKAGE_SDL2_KMSDRM),y)
 SDL2_DEPENDENCIES += libdrm libgbm libegl
 SDL2_CONF_OPTS += --enable-video-kmsdrm
 else
 SDL2_CONF_OPTS += --disable-video-kmsdrm
+endif
+
+ifeq ($(BR2_PACKAGE_XSERVER_XORG_SERVER),)
+  ifeq ($(BR2_PACKAGE_MESA3D_OPENGL_EGL),y)
+    TARGET_CFLAGS += -DEGL_NO_X11
+  endif
+endif
+
+# odroid go advance
+ifeq ($(BR2_PACKAGE_LIBRGA),y)
+SDL2_DEPENDENCIES += librga
+endif
+
+ifeq ($(BR2_PACKAGE_RECALBOX_TARGET_RPI5_64),y)
+  TARGET_CFLAGS += -DSDL_PI5_NO_ASYNCPAGEFLIP=1
 endif
 
 $(eval $(autotools-package))
